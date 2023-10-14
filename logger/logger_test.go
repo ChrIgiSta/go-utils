@@ -27,6 +27,7 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 )
@@ -170,4 +171,48 @@ func TestError(t *testing.T) {
 	}
 
 	fmt.Println(printOut)
+}
+
+func TestFile(t *testing.T) {
+
+	SetLogLevel("info")
+	if err := ToFile("myLog.txt"); err != nil {
+		t.Error(err)
+	}
+
+	if err := Fine("test", "fine message"); err != nil {
+		t.Error(err)
+	}
+	if err := Debug("test", "debug message"); err != nil {
+		t.Error(err)
+	}
+	if err := Info("test", "info message"); err != nil {
+		t.Error(err)
+	}
+	if err := Warn("test", "warn message"); err != nil {
+		t.Error(err)
+	}
+	if err := Error("test", "error message"); err != nil {
+		t.Error(err)
+	}
+
+	if err := CloseFile(); err != nil {
+		t.Error(err)
+	}
+
+	logs, err := os.ReadFile("myLog.txt")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if strings.Contains(string(logs), "FINE") || strings.Contains(string(logs), "DEBUG") {
+		t.Error("unexpected log level in file", string(logs))
+	}
+
+	if !strings.Contains(string(logs), "INFO") || !strings.Contains(string(logs), "WARN") ||
+		!strings.Contains(string(logs), "ERROR") {
+		t.Error("expected log levels not found in file", string(logs))
+	}
+
+	os.Remove("myLog.txt")
 }

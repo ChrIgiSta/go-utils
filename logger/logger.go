@@ -150,13 +150,22 @@ func ToFile(toFile string) error {
 	var err error
 
 	file, err = os.Open(toFile)
+	if err != nil {
+		file, err = os.Create(toFile)
+	}
 	println = filePrinter
 
 	return err
 }
 
 func CloseFile() error {
-	return file.Close()
+	var err error
+
+	if file != nil {
+		err = file.Close()
+	}
+
+	return err
 }
 
 func Fine(module, logText string, args ...interface{}) error {
