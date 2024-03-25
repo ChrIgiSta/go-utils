@@ -60,6 +60,18 @@ func ValidateUrl(input string) (err error) {
 		return errors.New("invalid url")
 	}
 
+	hostSplit := strings.Split(parsedURL.Host, ".")
+	if len(hostSplit) == 1 {
+		if hostSplit[0] != "localhost" {
+			return errors.New("no public url (missing TLD)")
+		}
+	} else {
+		tld := hostSplit[len(hostSplit)-1]
+		if len(tld) < 2 {
+			return errors.New("invalid TLD")
+		}
+	}
+
 	return
 }
 
@@ -128,6 +140,10 @@ func ValidateIPv4SubnetMask(input string) (err error) {
 }
 
 func ValidateNumber(input string) (err error) {
+	if err := ValidateNotEmpty(input); err != nil {
+		return err
+	}
+
 	regex := regexp.MustCompile("^[0-9]+$")
 	if regex.MatchString(input) {
 		return nil
@@ -145,7 +161,16 @@ func ValidateNotEmpty(input string) (err error) {
 }
 
 func ValidateMail(input string) (err error) {
-	_, err = mail.ParseAddress(input)
+	if _, err = mail.ParseAddress(input); err != nil {
+		return
+	}
+
+	emailSplit := strings.Split(input, "@")
+	if len(emailSplit) != 2 {
+		return errors.New("email format <a@y.z>")
+	}
+
+	err = ValidateUrl("http://" + emailSplit[1])
 
 	return
 }
